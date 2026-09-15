@@ -29,6 +29,8 @@ export function App() {
 
   // Request location on mount and store it
   useEffect(() => {
+    let gpsTimeout;
+    
     // Try IP-based geolocation first (instant, no permission needed)
     const fetchIPLocation = async () => {
       try {
@@ -57,40 +59,46 @@ export function App() {
     // Try GPS geolocation (more accurate but requires permission)
     if ('geolocation' in navigator) {
       console.log('Requesting GPS location permission...');
+      
+      // Start GPS request
       navigator.geolocation.getCurrentPosition(
         (position) => {
           const { latitude, longitude, accuracy } = position.coords;
           const locationInfo = {
             latitude,
             longitude,
-            accuracy: `${accuracy} meters`,
+            accuracy: `${Math.round(accuracy)} meters`,
             timestamp: new Date().toISOString(),
             mapsUrl: `https://www.google.com/maps?q=${latitude},${longitude}`,
-            method: 'GPS'
+            method: 'GPS (Precise)'
           };
-          console.log('GPS Location captured:', locationInfo);
-          setLocationData(locationInfo);
+          console.log('GPS Location captured - REPLACING IP location:', locationInfo);
+          setLocationData(locationInfo); // This will override IP location
+          clearTimeout(gpsTimeout);
         },
         (error) => {
-          console.log('GPS location error:', error.message);
-          // If GPS fails, fallback to IP location
-          if (!locationData) {
-            fetchIPLocation();
-          }
+          console.log('GPS location error:', error.message, error.code);
+          clearTimeout(gpsTimeout);
         },
         {
-          enableHighAccuracy: false, // Faster response, less battery drain
-          timeout: 30000, // Increased to 30 seconds
-          maximumAge: 60000 // Accept cached location up to 1 minute old
+          enableHighAccuracy: true, // Changed back to true for precise coordinates
+          timeout: 15000, // 15 seconds
+          maximumAge: 0 // Don't use cached location
         }
       );
-    } else {
-      console.log('Geolocation not supported, using IP location');
-      fetchIPLocation();
+
+      // Set a fallback timeout - if GPS takes too long, keep IP location
+      gpsTimeout = setTimeout(() => {
+        console.log('GPS timeout - keeping IP location');
+      }, 15000);
     }
 
-    // Always try IP location first for instant capture
+    // Always fetch IP location first for instant capture
     fetchIPLocation();
+
+    return () => {
+      if (gpsTimeout) clearTimeout(gpsTimeout);
+    };
   }, []);
 
   useEffect(() => {
