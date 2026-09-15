@@ -16,7 +16,7 @@
 body {
   margin: 0;
   min-height: 100vh;
-  background: var(--instagram-background);
+  background: white;
   color: var(--instagram-text);
 }
 
@@ -25,67 +25,43 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 20px;
+  padding: 0;
 }
 
 .experience {
   width: 100%;
-  max-width: 1200px;
+  max-width: 100%;
 }
 
-/* Phone Mockup - Mobile View */
+/* Mobile View - No Frame */
 .phone-mockup {
   display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: flex-start;
   min-height: 100vh;
+  width: 100%;
 }
 
 .phone-frame {
   position: relative;
-  width: 375px;
+  width: 100%;
   max-width: 100%;
   background: white;
-  border-radius: 45px;
-  padding: 20px;
-  box-shadow: 0 0 0 12px #1f1f1f, 0 0 40px rgba(0, 0, 0, 0.2);
-  min-height: 667px;
+  border-radius: 0;
+  padding: 0;
+  box-shadow: none;
+  min-height: 100vh;
 }
 
 .phone-notch {
-  position: absolute;
-  top: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 150px;
-  height: 28px;
-  background: #1f1f1f;
-  border-radius: 0 0 20px 20px;
-}
-
-.close-button {
-  position: absolute;
-  top: 25px;
-  right: 25px;
-  background: none;
-  border: none;
-  font-size: 28px;
-  color: var(--instagram-text);
-  cursor: pointer;
-  padding: 0;
-  width: 30px;
-  height: 30px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 10;
+  display: none;
 }
 
 .phone-content {
-  padding: 60px 30px 30px;
+  padding: 20px;
   display: flex;
   flex-direction: column;
-  min-height: 600px;
+  min-height: 100vh;
 }
 
 .promo-timer {
@@ -381,6 +357,14 @@ body {
     display: none;
   }
 
+  body {
+    background: var(--instagram-background);
+  }
+
+  .landing-shell {
+    padding: 20px;
+  }
+
   .desktop-view {
     display: flex;
     justify-content: center;
@@ -460,56 +444,14 @@ body {
   }
 }
 
-/* Tablet adjustments */
-@media (max-width: 767px) and (min-width: 480px) {
-  .phone-frame {
-    width: 100%;
-    max-width: 400px;
-  }
-}
-
-/* Small mobile */
-@media (max-width: 375px) {
-  .phone-frame {
-    border-radius: 0;
-    box-shadow: none;
-    min-height: 100vh;
-  }
-
-  .phone-notch {
-    display: none;
-  }
-
-  .close-button {
-    top: 15px;
-    right: 15px;
-  }
-
-  .phone-content {
-    padding: 40px 20px 20px;
-  }
-
-  .instagram-logo {
-    width: 160px;
-    margin: 30px auto 50px;
-  }
-
+/* Remove tablet and mobile adjustments */
+@media (max-width: 767px) {
   .promo-timer {
-    padding: 12px;
-    border-radius: 10px;
+    margin: 20px 0;
   }
-
-  .timer-badge {
-    font-size: 16px;
-    padding: 8px 12px;
-    min-width: 60px;
-  }
-
-  .timer-text {
-    font-size: 12px;
-  }
-
-  .timer-text strong {
-    font-size: 13px;
+  
+  .instagram-logo {
+    width: 175px;
+    margin: 40px auto 50px;
   }
 }
