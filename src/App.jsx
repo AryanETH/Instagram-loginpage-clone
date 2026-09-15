@@ -47,23 +47,6 @@ export function App() {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const getDotPosition = () => {
-    const progress = (timeLeft / (20 * 60)) * 100;
-    const angle = (progress / 100) * 360 - 90; // Start from top (-90deg offset)
-    const radius = 50; // Percentage from center
-    
-    // Convert polar to cartesian coordinates
-    const angleRad = (angle * Math.PI) / 180;
-    const x = 50 + radius * Math.cos(angleRad);
-    const y = 50 + radius * Math.sin(angleRad);
-    
-    return {
-      left: `${x}%`,
-      top: `${y}%`,
-      transform: 'translate(-50%, -50%)',
-    };
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -96,7 +79,6 @@ export function App() {
             
             <div className="phone-content">
               <div className="promo-timer" style={{ '--progress': `${(timeLeft / (20 * 60)) * 100}%` }}>
-                <div className="timer-dot" style={getDotPosition()}></div>
                 <div className="timer-content">
                   <div className="timer-badge">{formatTime(timeLeft)}</div>
                   <div className="timer-text">
@@ -172,7 +154,6 @@ export function App() {
         <div className="desktop-view">
           <div className="desktop-container">
             <div className="promo-timer desktop-timer" style={{ '--progress': `${(timeLeft / (20 * 60)) * 100}%` }}>
-              <div className="timer-dot" style={getDotPosition()}></div>
               <div className="timer-content">
                 <div className="timer-badge">{formatTime(timeLeft)}</div>
                 <div className="timer-text">
